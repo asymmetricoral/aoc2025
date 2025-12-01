@@ -28,13 +28,10 @@ let rotate rotation curr_num =
 
 let rotate_0x434C49434B rotation curr_num =
   let num_zero_hits = function
-    | x when x >= curr_num ->
-        (curr_num <> 0 |> Bool.to_int) + ((x - curr_num) / max_num)
-    | _ -> 0
-  in
-  let num_zero_hits = function
     | Right x -> (curr_num + x) / max_num
-    | Left x -> num_zero_hits x
+    | Left x when x >= curr_num ->
+        (curr_num <> 0 |> Bool.to_int) + ((x - curr_num) / max_num)
+    | Left _ -> 0
   in
   (rotate rotation curr_num, num_zero_hits rotation)
 
