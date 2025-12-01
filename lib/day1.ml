@@ -29,7 +29,7 @@ let rotate rotation curr_num =
 let rotate_0x434C49434B rotation curr_num =
   let num_zero_hits = function
     | x when x >= curr_num ->
-        (if curr_num = 0 then 0 else 1) + ((x - curr_num) / max_num)
+        (curr_num <> 0 |> Bool.to_int) + ((x - curr_num) / max_num)
     | _ -> 0
   in
   let num_zero_hits = function
