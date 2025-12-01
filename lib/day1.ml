@@ -39,25 +39,23 @@ let rotate_0x434C49434B rotation curr_num =
   | Right x -> (new_num, (curr_num + x) / max_num)
   | Left x -> (new_num, num_zero_hits x)
 
-let sol_1 =
-  let rec solve lines curr_num num_zeros =
-    match lines with
-    | x :: xs -> (
-        match rotate (parse_line x) curr_num with
-        | 0 -> solve xs 0 (num_zeros + 1)
-        | x -> solve xs x num_zeros)
-    | [] -> num_zeros
-  in
-  solve lines 50 0
-
-let sol_0x434C49434B =
-  let rec solve lines curr_num num_zeros =
+let solve step_fn =
+  let rec loop lines curr_num num_zeros =
     match lines with
     | x :: xs ->
-        let new_num, num_zero_hits =
-          rotate_0x434C49434B (parse_line x) curr_num
-        in
-        solve xs new_num (num_zeros + num_zero_hits)
+        let rot = parse_line x in
+        let new_num, hits = step_fn rot curr_num in
+        loop xs new_num (num_zeros + hits)
     | [] -> num_zeros
   in
-  solve lines 50 0
+  loop lines 50 0
+
+let sol_1 =
+  solve (fun rot curr ->
+    let new_curr = rotate rot curr in
+    let hits = if new_curr = 0 then 1 else 0 in
+    (new_curr, hits)
+  )
+
+let sol_0x434C49434B =
+  solve rotate_0x434C49434B
