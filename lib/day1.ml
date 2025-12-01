@@ -32,10 +32,11 @@ let rotate_0x434C49434B rotation curr_num =
         (if curr_num = 0 then 0 else 1) + ((x - curr_num) / max_num)
     | _ -> 0
   in
-  let new_num = rotate rotation curr_num in
-  match rotation with
-  | Right x -> (new_num, (curr_num + x) / max_num)
-  | Left x -> (new_num, num_zero_hits x)
+  let num_zero_hits = function
+    | Right x -> (curr_num + x) / max_num
+    | Left x -> num_zero_hits x
+  in
+  (rotate rotation curr_num, num_zero_hits rotation)
 
 let solve step_fn =
   let rec loop lines curr_num num_zeros =
