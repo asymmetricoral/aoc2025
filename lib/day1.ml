@@ -28,11 +28,9 @@ let rotate rotation curr_num =
 
 let rotate_0x434C49434B rotation curr_num =
   let num_zero_hits = function
-    | x when x < curr_num -> 0
-    | x when x = curr_num -> 1
-    | x when x > curr_num ->
+    | x when x >= curr_num ->
         (if curr_num = 0 then 0 else 1) + ((x - curr_num) / max_num)
-    | _ -> 1
+    | _ -> 0
   in
   let new_num = rotate rotation curr_num in
   match rotation with
@@ -52,10 +50,8 @@ let solve step_fn =
 
 let sol_1 =
   solve (fun rot curr ->
-    let new_curr = rotate rot curr in
-    let hits = if new_curr = 0 then 1 else 0 in
-    (new_curr, hits)
-  )
+      let new_curr = rotate rot curr in
+      let hits = if new_curr = 0 then 1 else 0 in
+      (new_curr, hits))
 
-let sol_0x434C49434B =
-  solve rotate_0x434C49434B
+let sol_0x434C49434B = solve rotate_0x434C49434B
