@@ -1,34 +1,44 @@
 open Helpers.Math
+open Helpers.Mylist
 
 (* constants *)
 let lines = Helpers.Lines.read_lines "inputs/day2.txt"
 
 (* brute force *)
 
-let is_unique_id x =
+let is_invalid_id x substr_length =
   let int_as_str = string_of_int x in
   let str_length = String.length int_as_str in
-  let halfway = str_length / 2 in
-  str_length % 2 = 0
-  && String.sub int_as_str 0 halfway
-     = String.sub int_as_str halfway halfway
+  str_length % substr_length = 0 && (eq @@ transform substr_length int_as_str)
 
-let rec unique_ids start_range end_range =
+let is_invalid_id_pt1 x =
+  let string_length = String.length @@ string_of_int x in
+  string_length % 2 = 0 && is_invalid_id (string_length / 2) x
+
+let is_invalid_id_pt2 x =
+  let max_substr_length = (String.length @@ string_of_int x) / 2 in
+  List.init max_substr_length (fun x -> x + 1)
+  |> List.map (is_invalid_id x)
+  |> List.fold_left ( || ) false
+
+let rec invalid_ids start_range end_range =
   match start_range with
-  | hd when start_range <> end_range && is_unique_id hd ->
-      hd :: unique_ids (start_range + 1) end_range
-  | _ -> unique_ids (start_range + 1) end_range
+  | hd when start_range <= end_range && is_invalid_id_pt2 hd ->
+      hd :: invalid_ids (start_range + 1) end_range
+  | _ when start_range > end_range -> []
+  | _ -> invalid_ids (start_range + 1) end_range
 
-let sum_unique_ids (start_range, end_range) =
-  unique_ids start_range end_range |> List.fold_left ( + ) 0
+let sum_invalid_ids (start_range, end_range) =
+  invalid_ids start_range end_range |> List.fold_left ( + ) 0
 
 let parse_input line =
   let parse_range segment =
     match String.split_on_char '-' segment with
-      | [a; b] -> (int_of_string a, int_of_string b)
-      | _ -> invalid_arg "invalid segment"
+    | [ a; b ] -> (int_of_string a, int_of_string b)
+    | _ -> invalid_arg "invalid segment"
   in
   String.split_on_char ',' line |> List.map parse_range
 
 let sol_1 =
-  List.fold_left (+) 0 @@ List.map sum_unique_ids (List.hd lines |> parse_input)
+  List.fold_left ( + ) 0
+  @@ List.map sum_invalid_ids (List.hd lines |> parse_input)
