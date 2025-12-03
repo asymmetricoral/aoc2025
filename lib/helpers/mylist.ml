@@ -8,3 +8,11 @@ let rec transform x str =
 let eq = function
   | [] | [_] -> true
   | x :: xs -> List.for_all ((=) x) xs
+
+(* builds the maximum suffix list *)
+let rec build_maximal_list = function
+  | [] -> []
+  | [ x ] -> [ x ]
+  | x :: xs ->
+      let maximal_list = build_maximal_list xs in
+      Int.max x (List.hd maximal_list) :: maximal_list
