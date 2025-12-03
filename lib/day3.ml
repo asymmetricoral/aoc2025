@@ -1,4 +1,5 @@
 let ( << ) = Helpers.Other.( << )
+let int_value = Helpers.Other.int_value
 let build_maximal_list = Helpers.Mylist.build_maximal_list
 
 (* constants *)
