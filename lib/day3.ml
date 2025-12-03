@@ -11,16 +11,16 @@ let lines = Helpers.Lines.read_lines "inputs/day3.txt"
 let parse_bank line =
   List.init (String.length line) (int_value << String.get line)
 
-(* does the pairing of the prefixes with the suffices *)
-let find_joltages bank suffices exponent =
-  let rec find_joltages bank suffices =
-    match (bank, suffices) with
+(* does the pairing of the prefixes with the suffixes *)
+let find_joltages bank suffixes exponent =
+  let rec find_joltages bank suffixes =
+    match (bank, suffixes) with
     | _, [] -> []
     | x :: xs, y :: ys ->
         ((x * Helpers.Math.pow 10 exponent) + y) :: find_joltages xs ys
     | _ -> invalid_arg "impossible configuration"
   in
-  find_joltages bank suffices
+  find_joltages bank suffixes
 
 let build_joltages bank =
   let step_fn maximal_list exponent =
