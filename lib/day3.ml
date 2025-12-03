@@ -1,4 +1,5 @@
-open Helpers.Other
+let ( << ) = Helpers.Other.( << )
+let build_maximal_list = Helpers.Mylist.build_maximal_list
 
 (* constants *)
 let lines = Helpers.Lines.read_lines "inputs/day3.txt"
@@ -10,7 +11,6 @@ let parse_bank line =
   List.init (String.length line) (int_value << String.get line)
 
 (* does the pairing of the prefixes with the suffices *)
-(* the exponent is the tens unit, i'll come up with a better term later *)
 let find_joltages bank suffices exponent =
   let rec find_joltages bank suffices =
     match (bank, suffices) with

@@ -1,5 +1,6 @@
-open Helpers.Math
-open Helpers.Mylist
+let ( % ) = Helpers.Math.( % )
+let eq = Helpers.Mylist.eq
+let transform = Helpers.Mylist.transform
 
 (* constants *)
 let lines = Helpers.Lines.read_lines "inputs/day2.txt"

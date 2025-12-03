@@ -1,4 +1,4 @@
-open Helpers.Math
+let ( % ) = Helpers.Math.( % )
 
 (* types *)
 type rotation = Right of int | Left of int
