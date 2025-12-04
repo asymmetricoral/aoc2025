@@ -1,3 +1,3 @@
 open Aoc2025
 
-let () = print_endline (string_of_int (Day3.sol_2))
+let () = print_int (Day4.sol_2 ())
