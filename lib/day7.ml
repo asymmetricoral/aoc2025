@@ -15,7 +15,7 @@ let fire_beam_down origin m =
   let rec fire_beam_down origin =
     if
       out_of_bounds origin (Array.length m.(0))
-      || m.(origin.x).(origin.y) == '|'
+      (* || m.(origin.x).(origin.y) == '|' pt 1 *)
     then None
     else if m.(origin.x).(origin.y) <> '^' then (
       m.(origin.x).(origin.y) <- '|';
@@ -27,10 +27,10 @@ let fire_beam_down origin m =
 let num_times_split m =
   let rec num_times_split start_pos =
     match fire_beam_down start_pos m with
-    | None -> 0
+    | None -> (* 0 pt 1 *) 1
     | Some splitter ->
-        1
-        + num_times_split { splitter with y = pred splitter.y }
+        (* 1 pt 1 *)
+        num_times_split { splitter with y = pred splitter.y }
         + num_times_split { splitter with y = succ splitter.y }
   in
   num_times_split pos_s
