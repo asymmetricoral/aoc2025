@@ -1,3 +1,3 @@
 open Aoc2025
 
-let () = print_int @@ Day7.sol_2
+let () = print_int @@ Day8.sol_1
