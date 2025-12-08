@@ -91,11 +91,11 @@ let sol_2 =
     match distance_list with
     | [] -> failwith "this condition should never be hit."
     | d :: ds -> (
-        let new_circuit =
+        let new_circuits =
           add_node_to_circuit circuits d.u d.v |> merge_circuits d.u d.v
         in
-        match new_circuit with
+        match new_circuits with
         | [ x ] when NodeSet.cardinal x = List.length lines -> d.u.x *. d.v.x
-        | _ -> find_circuits ds new_circuit)
+        | _ -> find_circuits ds new_circuits)
   in
   find_circuits distance_list []
