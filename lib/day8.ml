@@ -82,12 +82,20 @@ let sol_1 =
           (add_node_to_circuit circuits d.u d.v |> merge_circuits d.u d.v)
   in
   let circuits_full = find_circuits distance_list [] in
-
-  (* Printf.printf "DEBUG: full circuits list:\n";
-     List.iteri
-       (fun i s ->
-         Printf.printf "  #%d (size %d): " i (NodeSet.cardinal s);
-         print_nodeset s)
-       circuits_full; *)
   let first_three = Helpers.Mylist.take 3 (List.rev circuits_full) in
   List.fold_left ( * ) 1 (List.map NodeSet.cardinal first_three)
+
+let sol_2 =
+  let distance_list = List.sort compare_dist (distances lines) in
+  let rec find_circuits distance_list circuits =
+    match distance_list with
+    | [] -> failwith "this condition should never be hit."
+    | d :: ds -> (
+        let new_circuit =
+          add_node_to_circuit circuits d.u d.v |> merge_circuits d.u d.v
+        in
+        match new_circuit with
+        | [ x ] when NodeSet.cardinal x = List.length lines -> d.u.x *. d.v.x
+        | _ -> find_circuits ds new_circuit)
+  in
+  find_circuits distance_list []
