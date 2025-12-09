@@ -1,4 +1,4 @@
-let (<<) = Other.(<<)
+let ( << ) = Other.( << )
 
 let print_matrix m =
   for i = 0 to Array.length m - 1 do

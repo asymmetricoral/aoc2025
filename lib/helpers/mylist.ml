@@ -14,8 +14,8 @@ let rec build_maximal_list = function
       let maximal_list = build_maximal_list xs in
       Int.max x (List.hd maximal_list) :: maximal_list
 
-let rec take k xs = match k with
-    | 0 -> []
-    | k -> match xs with
-           | [] -> failwith "take"
-           | y::ys -> y :: (take (k - 1) ys)
+let rec take k xs =
+  match k with
+  | 0 -> []
+  | k -> (
+      match xs with [] -> failwith "take" | y :: ys -> y :: take (k - 1) ys)
