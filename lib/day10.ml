@@ -1,8 +1,9 @@
 let ( << ) = Helpers.Other.( << )
 let lines = Helpers.Lines.read_lines "inputs/day10.txt"
 
-type button = int
+type button = { bits : int; vector : int array }
 type indicator_lights = { mask : int; num_lights : int }
+type joltage = int
 
 module IntSet = Set.Make (struct
   type t = int
@@ -13,27 +14,27 @@ end)
 type machine = {
   indicator_lights : indicator_lights;
   buttons : button list;
-  joltages : int list;
+  joltages : joltage array;
 }
 
-(*
-  takes a string like (0, 3),
-  and assuming length_lights > max_int
-  then bit 0 and 3 are 1s and the rest are 0s
-*)
 let string_to_button str length_lights =
-  (* remove brackets *)
+  let bit_vector = Array.make length_lights 0 in
   let s = String.sub str 1 (String.length str - 2) in
-
   let indices = String.split_on_char ',' s in
-  List.fold_left
-    (fun acc index_str ->
-      try
-        let index = int_of_string (String.trim index_str) in
-        if index >= 0 && index < length_lights then acc lor (1 lsl index)
-        else acc
-      with Failure _ -> acc)
-    0 indices
+
+  let final_mask =
+    List.fold_left
+      (fun mask index_str ->
+        try
+          let index = int_of_string (String.trim index_str) in
+          if index >= 0 && index < length_lights then (
+            bit_vector.(index) <- 1;
+            mask lor (1 lsl index) (* Calculate the bitmask *))
+          else mask
+        with Failure _ -> mask)
+      0 indices
+  in
+  { bits = final_mask; vector = bit_vector }
 
 (* takes a string like [.##.] and converts it to a binary number like 0110 *)
 let string_to_lights str =
@@ -64,15 +65,13 @@ let string_to_machine str =
 
   let indicator_lights = { mask = lights_mask; num_lights } in
 
-  (* remove parentheses *)
   let joltages_str = List.hd (List.rev splitted_line) in
   let joltages_s = String.sub joltages_str 1 (String.length joltages_str - 2) in
-  (* remove braces *)
   let joltages =
     String.split_on_char ',' joltages_s
     |> List.map String.trim
     |> List.filter (fun s -> s <> "")
-    |> List.map int_of_string
+    |> List.map int_of_string |> Array.of_list
   in
 
   let button_strs = List.tl splitted_line |> List.rev |> List.tl |> List.rev in
@@ -80,60 +79,101 @@ let string_to_machine str =
 
   { indicator_lights; buttons; joltages }
 
-(* parsing done, time for solving *)
+(* Utility functions *)
 let is_all_off lights_state = lights_state.mask = 0
 
-let flip_lights lights_state button =
-  let new_mask = lights_state.mask lxor button in
+let is_all_zero (joltages_state : joltage array) =
+  Array.for_all (fun j -> j = 0) joltages_state
 
+let flip_lights lights_state button =
+  let new_mask = lights_state.mask lxor button.bits in
   { lights_state with mask = new_mask }
 
-let find_fewest_button_presses machine =
+let decrement_joltages joltages button = Array.map2 ( - ) joltages button.vector
+
+(* --- CORE GENERIC SOLVER --- *)
+
+let solve_puzzle_generic (initial_state : 'a) (buttons : button list)
+    (get_cache_key : 'a -> int) (is_goal : 'a -> bool)
+    (transition : 'a -> button -> 'a option) =
   let q = Queue.create () in
-  (* sets of indicator_lights *)
-  (* if we've already seen the configuration *)
-  (* then we're stuck in a loop. *)
-  (* we will not add these to the queue. *)
   let cache = IntSet.empty in
 
-  let add lights num_pressed cache =
-    let current_mask = lights.mask in
+  let add state num_pressed cache =
+    let current_key = get_cache_key state in
 
-    if IntSet.mem current_mask cache then cache
+    if IntSet.mem current_key cache then cache
     else
-      let new_cache = IntSet.add current_mask cache in
+      let new_cache = IntSet.add current_key cache in
 
       List.iter
         (fun b ->
-          let item = (b, lights, num_pressed) in
+          let item = (b, state, num_pressed) in
           Queue.add item q)
-        machine.buttons;
+        buttons;
 
       new_cache
   in
 
-  let initial_cache = add machine.indicator_lights 0 cache in
+  let initial_cache = add initial_state 0 cache in
 
   let rec loop q current_cache =
     if Queue.is_empty q then failwith "impossible configuration"
     else
-      let button_to_press, lights_before, num_pressed = Queue.pop q in
+      let button_to_press, state_before, num_pressed = Queue.pop q in
 
-      (* we perform the next configuration's operation *)
-      let new_lights = flip_lights lights_before button_to_press in
-
-      if is_all_off new_lights then num_pressed + 1
-      else
-        (* then we add this new light configuration and all other buttons to press *)
-        let updated_cache = add new_lights (num_pressed + 1) current_cache in
-
-        (* then we loop *)
-        loop q updated_cache
+      match transition state_before button_to_press with
+      | Some new_state ->
+          if is_goal new_state then num_pressed + 1
+          else
+            let updated_cache = add new_state (num_pressed + 1) current_cache in
+            loop q updated_cache
+      | None -> loop q current_cache
   in
   loop q initial_cache
+
+(* --- PART 1 SPECIFIC IMPLEMENTATION --- *)
+
+let find_fewest_button_presses machine =
+  let lights_transition lights button =
+    let new_lights = flip_lights lights button in
+    Some new_lights
+  in
+
+  solve_puzzle_generic machine.indicator_lights machine.buttons
+    (fun lights -> lights.mask) (* get_cache_key: lights.mask *)
+    is_all_off lights_transition
+
+(* --- PART 2 SPECIFIC IMPLEMENTATION --- *)
+
+let solve_joltage_puzzle machine =
+  let joltage_array_to_int joltage_arr =
+    Array.fold_left (fun acc j -> (acc lsl 8) + j) 0 joltage_arr
+  in
+
+  let joltage_transition joltages button =
+    let new_joltages = decrement_joltages joltages button in
+
+    if Array.for_all (fun j -> j >= 0) new_joltages then Some new_joltages
+    else None
+  in
+
+  solve_puzzle_generic machine.joltages machine.buttons
+    joltage_array_to_int (* get_cache_key: joltage array hash *)
+    is_all_zero joltage_transition
+
+(* --- MAIN CALLS --- *)
 
 let sol_1 =
   let process_line_to_result line =
     line |> string_to_machine |> find_fewest_button_presses
+  in
+  List.fold_left ( + ) 0 (List.map process_line_to_result lines)
+
+let sol_2 =
+  let process_line_to_result line =
+    Printf.printf "Processing: %s\n" line;
+    flush stdout;
+    line |> string_to_machine |> solve_joltage_puzzle
   in
   List.fold_left ( + ) 0 (List.map process_line_to_result lines)
