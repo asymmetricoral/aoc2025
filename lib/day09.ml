@@ -1,7 +1,7 @@
 open Helpers.Graph
 
 let ( % ) = Helpers.Math.( % )
-let lines = Helpers.Lines.read_lines "inputs/day9.txt"
+let lines = Helpers.Lines.read_lines "inputs/day09.txt"
 
 type rectangle = Rectangle of node * node
 
